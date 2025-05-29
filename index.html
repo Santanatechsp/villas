@@ -175,9 +175,9 @@
       });
 
       newsCard.innerHTML = `
-        <img src="https://via.placeholder.com/1920x1080?text=Carregando..." />
-        <div class="news-title">Carregando notícias de ${category}...</div>
-      `;
+  <img src="https://picsum.photos/1920/1080?random=1" alt="Carregando..." />
+  <div class="news-title">Carregando notícias de ${category}...</div>
+`;
 
       const query = categoryQueries[category] || category;
       const articles = await fetchFilteredNews(query, Array.from(shownUrls));
