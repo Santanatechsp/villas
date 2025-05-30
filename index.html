@@ -23,15 +23,18 @@
     }
 
     .relogio {
-      position: absolute;
-      top: 20px;
-      right: 30px;
-      font-size: 1.2rem;
-      background-color: rgba(0, 0, 0, 0.6);
-      padding: 10px 20px;
-      border-radius: 12px;
-      z-index: 2;
-    }
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  font-size: 10rem; /* Tamanho maior para visibilidade */
+  font-family: 'Arial', sans-serif;
+  color: #ffffff; /* Fonte branca */
+  background: none; /* Sem fundo */
+  padding: 0;
+  border: none;
+  z-index: 10;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+}
 
     .card {
       position: relative;
@@ -80,7 +83,7 @@
   </style>
 </head>
 <body>
-  <div class="relogio" id="relogio">00:00:00</div>
+  <div class="relogio" id="relogio">00:00</div>
   <div class="container" id="news-container">Carregando...</div>
 
   <script>
@@ -94,9 +97,9 @@
       const horas = agora.getHours().toString().padStart(2, '0');
       const minutos = agora.getMinutes().toString().padStart(2, '0');
       const segundos = agora.getSeconds().toString().padStart(2, '0');
-      relogio.textContent = `${horas}:${minutos}:${segundos}`;
+      relogio.textContent = `${horas}:${minutos}`;
     }
-    setInterval(atualizarRelogio, 1000);
+    setInterval(atualizarRelogio, 3000);
     atualizarRelogio();
 
     async function carregarNoticias() {
