@@ -17,24 +17,19 @@
     }
 
     body {
-      position: relative;
       background-color: #000;
       color: #fff;
     }
 
     .relogio {
-  position: absolute;
-  top: 20px;
-  right: 30px;
-  font-size: 10rem; /* Tamanho maior para visibilidade */
-  font-family: 'Arial', sans-serif;
-  color: #ffffff; /* Fonte branca */
-  background: none; /* Sem fundo */
-  padding: 0;
-  border: none;
-  z-index: 10;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
-}
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      font-size: 10rem;
+      color: #fff;
+      z-index: 10;
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+    }
 
     .card {
       position: relative;
@@ -77,28 +72,49 @@
     }
 
     .container {
-      height: 100%;
       width: 100%;
+      height: 100%;
+    }
+
+    #video-player {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      background: #000;
+      z-index: 9999;
     }
   </style>
 </head>
 <body>
   <div class="relogio" id="relogio">00:00</div>
   <div class="container" id="news-container">Carregando...</div>
+  <video id="video-player" autoplay muted playsinline></video>
 
   <script>
     const container = document.getElementById("news-container");
     const relogio = document.getElementById("relogio");
+    const videoPlayer = document.getElementById("video-player");
+
     let noticias = [];
     let indexAtual = 0;
+    let intervalNoticias;
+
+    const videos = [
+      "https://santanatechsp.github.io/villas/videos/video1.mp4",
+      "https://santanatechsp.github.io/villas/videos/video2.mp4"
+    ];
 
     function atualizarRelogio() {
       const agora = new Date();
       const horas = agora.getHours().toString().padStart(2, '0');
       const minutos = agora.getMinutes().toString().padStart(2, '0');
-      const segundos = agora.getSeconds().toString().padStart(2, '0');
       relogio.textContent = `${horas}:${minutos}`;
     }
+
     setInterval(atualizarRelogio, 3000);
     atualizarRelogio();
 
@@ -140,8 +156,7 @@
         }
 
         exibirNoticia();
-        setInterval(exibirNoticia, 20000); // Troca a cada 20 segundos
-
+        intervalNoticias = setInterval(exibirNoticia, 20000); // Troca de notícia a cada 20s
       } catch (error) {
         container.innerHTML = `<p style="color: white;">Erro ao carregar notícias: ${error.message}</p>`;
         console.error(error);
@@ -165,11 +180,56 @@
       `;
 
       container.appendChild(card);
-
       indexAtual = (indexAtual + 1) % noticias.length;
     }
 
+    function reproduzirVideos() {
+      clearInterval(intervalNoticias);
+      container.style.display = "none";
+      videoPlayer.style.display = "block";
+      relogio.style.display = "none";
+
+      let current = 0;
+
+      function tocarVideo(index) {
+        if (index >= videos.length) {
+          videoPlayer.style.display = "none";
+          container.style.display = "block";
+          relogio.style.display = "block";
+          exibirNoticia();
+          intervalNoticias = setInterval(exibirNoticia, 20000);
+          return;
+        }
+
+        videoPlayer.src = videos[index];
+
+        // Tenta ativar modo tela cheia
+        if (videoPlayer.requestFullscreen) {
+          videoPlayer.requestFullscreen().catch(err => {
+            console.warn("Modo tela cheia falhou:", err);
+          });
+        }
+
+        videoPlayer.play();
+
+        // Fallback de segurança (35s)
+        const tempoMaximo = 35000;
+        let timeout = setTimeout(() => {
+          videoPlayer.onended = null;
+          tocarVideo(index + 1);
+        }, tempoMaximo);
+
+        videoPlayer.onended = () => {
+          clearTimeout(timeout);
+          tocarVideo(index + 1);
+        };
+      }
+
+      tocarVideo(current);
+    }
+
     carregarNoticias();
+    setInterval(reproduzirVideos, 60000); // a cada 30 segundos
   </script>
 </body>
 </html>
