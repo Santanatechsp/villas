@@ -1,3 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Últimas Notícias - CNN Brasil</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
+    html, body {
+      height: 100%;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
 
-teste
+    body {
+      position: relative;
+      background-color: #000;
+      color: #fff;
+    }
+
+    .relogio {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  font-size: 10rem; /* Tamanho maior para visibilidade */
+  font-family: 'Arial', sans-serif;
+  color: #ffffff; /* Fonte branca */
+  background: none; /* Sem fundo */
+  padding: 0;
+  border: none;
+  z-index: 10;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+    .card {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+
+    .card-content {
+      position: absolute;
+      bottom: 60px;
+      left: 40px;
+      right: 40px;
+      z-index: 1;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 30px;
+      border-radius: 16px;
+    }
+
+    .card-title {
+      font-size: 2.2rem;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+      margin-bottom: 10px;
+    }
+
+    .card-date {
+      font-size: 1.2rem;
+      color: #ccc;
+    }
+
+    .container {
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="relogio" id="relogio">00:00</div>
+  <div class="container" id="news-container">Carregando...</div>
+
+  <script>
+    const container = document.getElementById("news-container");
+    const relogio = document.getElementById("relogio");
+    let noticias = [];
+    let indexAtual = 0;
+
+    function atualizarRelogio() {
+      const agora = new Date();
+      const horas = agora.getHours().toString().padStart(2, '0');
+      const minutos = agora.getMinutes().toString().padStart(2, '0');
+      const segundos = agora.getSeconds().toString().padStart(2, '0');
+      relogio.textContent = `${horas}:${minutos}`;
+    }
+    setInterval(atualizarRelogio, 3000);
+    atualizarRelogio();
+
+    async function carregarNoticias() {
+      const proxy = "https://api.allorigins.win/raw?url=";
+      const url = "https://admin.cnnbrasil.com.br/sitemap-news.xml";
+
+      try {
+        const response = await fetch(proxy + encodeURIComponent(url));
+        const xmlText = await response.text();
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(xmlText, "text/xml");
+
+        const urls = xml.getElementsByTagName("url");
+
+        for (let url of urls) {
+          const nsImage = "http://www.google.com/schemas/sitemap-image/1.1";
+          const nsNews = "http://www.google.com/schemas/sitemap-news/0.9";
+
+          const imagemTag = url.getElementsByTagNameNS(nsImage, "loc")[0];
+          const tituloTag = url.getElementsByTagNameNS(nsNews, "title")[0];
+          const dataTag = url.getElementsByTagNameNS(nsNews, "publication_date")[0];
+
+          const imagem = imagemTag?.textContent || "";
+          const titulo = tituloTag?.textContent || "Sem título";
+          const data = dataTag?.textContent || "";
+
+          let dataFormatada = "Data indisponível";
+          if (data) {
+            dataFormatada = new Date(data).toLocaleString("pt-BR", {
+              dateStyle: "medium",
+              timeStyle: "short"
+            });
+          }
+
+          if (imagem && titulo) {
+            noticias.push({ imagem, titulo, data: dataFormatada });
+          }
+        }
+
+        exibirNoticia();
+        setInterval(exibirNoticia, 20000); // Troca a cada 20 segundos
+
+      } catch (error) {
+        container.innerHTML = `<p style="color: white;">Erro ao carregar notícias: ${error.message}</p>`;
+        console.error(error);
+      }
+    }
+
+    function exibirNoticia() {
+      if (noticias.length === 0) return;
+
+      const noticia = noticias[indexAtual];
+      container.innerHTML = "";
+
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <img src="${noticia.imagem}" alt="Imagem da notícia">
+        <div class="card-content">
+          <div class="card-title">${noticia.titulo}</div>
+          <div class="card-date">${noticia.data}</div>
+        </div>
+      `;
+
+      container.appendChild(card);
+
+      indexAtual = (indexAtual + 1) % noticias.length;
+    }
+
+    carregarNoticias();
+  </script>
+</body>
+</html>
